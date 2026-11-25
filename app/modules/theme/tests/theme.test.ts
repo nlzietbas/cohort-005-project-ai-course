@@ -7,7 +7,7 @@ const appCss = readFileSync(
   "utf8"
 );
 
-const PAIRS = [
+const PASSING_TOKENS = [
   "foreground: oklch(0.15 0 0)",
   "background: oklch(1 0 0)",
   "card-foreground: oklch(0.15 0 0)",
@@ -32,7 +32,7 @@ const PAIRS = [
 ];
 
 function theme(overrides: Record<string, string> = {}): string {
-  const body = PAIRS.map((line) => {
+  const body = PASSING_TOKENS.map((line) => {
     const name = line.split(":")[0];
     return `  --${name}: ${overrides[name] ?? line.slice(name.length + 2)};`;
   }).join("\n");

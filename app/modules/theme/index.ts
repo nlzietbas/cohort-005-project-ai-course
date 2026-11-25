@@ -1,32 +1,48 @@
 import { type Oklch, contrastRatio, parseOklch } from "./lib/oklch";
 import { readTokens } from "./lib/tokens";
 
-export type ContrastFailure = {
-  mode: "light" | "dark";
-  foreground: string;
-  background: string;
-  ratio: number;
-  required: number;
-};
-
 /** WCAG AA: 4.5:1 for body text, 3:1 for a focus ring or other UI. */
 const TEXT = 4.5;
 const UI = 3;
 
-const PAIRS: ReadonlyArray<[string, string, number]> = [
-  ["foreground", "background", TEXT],
-  ["card-foreground", "card", TEXT],
-  ["popover-foreground", "popover", TEXT],
-  ["primary", "background", TEXT],
-  ["primary-foreground", "primary", TEXT],
-  ["secondary-foreground", "secondary", TEXT],
-  ["muted-foreground", "muted", TEXT],
-  ["muted-foreground", "background", TEXT],
-  ["accent-foreground", "accent", TEXT],
-  ["sidebar-foreground", "sidebar", TEXT],
-  ["sidebar-primary-foreground", "sidebar-primary", TEXT],
-  ["sidebar-accent-foreground", "sidebar-accent", TEXT],
-  ["ring", "background", UI],
+/** A token's text, drawn on another token, and the ratio it must reach. */
+type ContrastPair = {
+  foreground: string;
+  background: string;
+  required: number;
+};
+
+export type ContrastFailure = ContrastPair & {
+  mode: "light" | "dark";
+  ratio: number;
+};
+
+const PAIRS: ReadonlyArray<ContrastPair> = [
+  { foreground: "foreground", background: "background", required: TEXT },
+  { foreground: "card-foreground", background: "card", required: TEXT },
+  { foreground: "popover-foreground", background: "popover", required: TEXT },
+  { foreground: "primary", background: "background", required: TEXT },
+  { foreground: "primary-foreground", background: "primary", required: TEXT },
+  {
+    foreground: "secondary-foreground",
+    background: "secondary",
+    required: TEXT,
+  },
+  { foreground: "muted-foreground", background: "muted", required: TEXT },
+  { foreground: "muted-foreground", background: "background", required: TEXT },
+  { foreground: "accent-foreground", background: "accent", required: TEXT },
+  { foreground: "sidebar-foreground", background: "sidebar", required: TEXT },
+  {
+    foreground: "sidebar-primary-foreground",
+    background: "sidebar-primary",
+    required: TEXT,
+  },
+  {
+    foreground: "sidebar-accent-foreground",
+    background: "sidebar-accent",
+    required: TEXT,
+  },
+  { foreground: "ring", background: "background", required: UI },
 ];
 
 /** An opaque `oklch()` colour, or null for anything else. */
@@ -59,7 +75,7 @@ export function checkThemeContrast(css: string): ContrastFailure[] {
   const failures: ContrastFailure[] = [];
   for (const [mode, selector] of MODES) {
     const tokens = readTokens(css, selector);
-    for (const [foreground, background, required] of PAIRS) {
+    for (const { foreground, background, required } of PAIRS) {
       const fg = parseOpaque(tokens.get(foreground));
       const bg = parseOpaque(tokens.get(background));
       const ratio = fg && bg ? contrastRatio(fg, bg) : 0;
