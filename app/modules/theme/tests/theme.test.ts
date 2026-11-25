@@ -69,7 +69,7 @@ describe("contrast", () => {
     ["magenta", "oklch(0.7017 0.3225 328.36)", 0.2848],
     ["cyan", "oklch(0.9054 0.1546 194.77)", 0.7874],
   ])("gives sRGB %s its WCAG luminance against black", (_, colour, y) => {
-    expect(contrast(colour, "oklch(0 0 0)")).toBeCloseTo((y + 0.05) / 0.05, 1);
+    expect(contrast(colour, "oklch(0 0 0)")).toBeCloseTo((y + 0.05) / 0.05, 2);
   });
 
   it("accepts loose spacing inside oklch()", () => {
