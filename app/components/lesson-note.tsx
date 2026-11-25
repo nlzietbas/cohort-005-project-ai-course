@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useFetcher } from "react-router";
-import { toast } from "sonner";
 import { Lock, NotebookPen } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
@@ -19,12 +18,7 @@ export function LessonNote({
   const [body, setBody] = useState(note?.body ?? "");
   const isSaving = fetcher.state !== "idle";
   const draft = noteDraft(body, note?.body ?? null);
-
-  useEffect(() => {
-    if (fetcher.state === "idle" && fetcher.data?.error) {
-      toast.error(fetcher.data.error);
-    }
-  }, [fetcher.state, fetcher.data]);
+  const error = isSaving ? undefined : fetcher.data?.error;
 
   return (
     <Card className="mb-8">
@@ -50,10 +44,14 @@ export function LessonNote({
             >
               {isSaving ? "Saving..." : "Save note"}
             </Button>
-            <NoteStatus
-              updatedAt={note?.updatedAt ?? null}
-              unsaved={!draft.unchanged}
-            />
+            {error ? (
+              <span className="text-xs text-destructive">{error}</span>
+            ) : (
+              <NoteStatus
+                updatedAt={note?.updatedAt ?? null}
+                unsaved={!draft.unchanged}
+              />
+            )}
             <CharacterCount draft={draft} />
           </div>
         </fetcher.Form>
