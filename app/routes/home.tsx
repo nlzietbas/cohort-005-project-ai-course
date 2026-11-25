@@ -24,7 +24,8 @@ import { getCurrentUserId, getDevCountry } from "~/lib/session";
 import { getCountryTierInfo, COUNTRIES } from "~/lib/ppp";
 import { eq, like, and, or, sql } from "drizzle-orm";
 import { db } from "~/db";
-import { courses, categories, users, modules, lessons } from "~/db/schema";
+import { courses, categories, users } from "~/db/schema";
+import { catalogOverview } from "~/modules/catalog-overview/index.server";
 
 function getAllUsers() {
   return db.select().from(users).all();
@@ -32,10 +33,6 @@ function getAllUsers() {
 
 function getUserById(id: number) {
   return db.select().from(users).where(eq(users.id, id)).get();
-}
-
-function getAllCategories() {
-  return db.select().from(categories).orderBy(categories.name).all();
 }
 
 function buildCourseQuery(
@@ -99,24 +96,6 @@ function buildCourseQuery(
   return sorted.limit(limit).offset(offset).all();
 }
 
-function getLessonCountForCourse(courseId: number) {
-  const courseModules = db
-    .select({ id: modules.id })
-    .from(modules)
-    .where(eq(modules.courseId, courseId))
-    .all();
-
-  if (courseModules.length === 0) return 0;
-
-  const count = db
-    .select({ count: sql<number>`count(*)` })
-    .from(lessons)
-    .where(or(...courseModules.map((m) => eq(lessons.moduleId, m.id))))
-    .get();
-
-  return count?.count ?? 0;
-}
-
 export function meta() {
   return [
     { title: "Cadence — Learn at your own pace" },
@@ -129,19 +108,14 @@ export function meta() {
 }
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const courses = buildCourseQuery(
+  const featured = buildCourseQuery(
     null,
     null,
     CourseStatus.Published,
     "newest",
-    50,
+    3,
     0
   );
-  const featured = courses.slice(0, 3).map((course) => ({
-    ...course,
-    lessonCount: getLessonCountForCourse(course.id),
-  }));
-  const categories = getAllCategories();
   const users = getAllUsers();
   const currentUserId = await getCurrentUserId(request);
   const currentUser = currentUserId ? getUserById(currentUserId) : null;
@@ -150,8 +124,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   return {
     featuredCourses: featured,
-    totalCourses: courses.length,
-    totalCategories: categories.length,
+    catalog: catalogOverview.get(),
     users: users.map((u) => ({ id: u.id, name: u.name, role: u.role })),
     currentUser: currentUser
       ? { id: currentUser.id, name: currentUser.name, role: currentUser.role }
@@ -165,8 +138,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function Home({ loaderData }: Route.ComponentProps) {
   const {
     featuredCourses,
-    totalCourses,
-    totalCategories,
+    catalog,
     users,
     currentUser,
     devCountry,
@@ -260,15 +232,19 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-lg bg-primary/10">
               <BookOpen className="size-6 text-primary" />
             </div>
-            <p className="text-2xl font-bold">{totalCourses}</p>
-            <p className="text-sm text-muted-foreground">Available Courses</p>
+            <p className="text-2xl font-bold">Hands-on courses</p>
+            <p className="text-sm text-muted-foreground">
+              Lessons, quizzes and progress tracking
+            </p>
           </div>
           <div className="text-center">
             <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-lg bg-primary/10">
               <GraduationCap className="size-6 text-primary" />
             </div>
-            <p className="text-2xl font-bold">{totalCategories}</p>
-            <p className="text-sm text-muted-foreground">Categories</p>
+            <p className="text-2xl font-bold">{catalog.topics}</p>
+            <p className="text-sm text-muted-foreground">
+              Topics to choose from
+            </p>
           </div>
           <div className="text-center">
             <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-lg bg-primary/10">
@@ -280,6 +256,12 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             </p>
           </div>
         </div>
+        <details className="mx-auto mt-8 max-w-6xl px-6 text-center text-sm text-muted-foreground">
+          <summary className="cursor-pointer hover:text-foreground">
+            Prefer exact numbers?
+          </summary>
+          <p className="mt-2">{catalog.exactFigures}</p>
+        </details>
       </section>
 
       {featuredCourses.length > 0 && (
@@ -329,8 +311,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                       {course.instructorName ?? "Instructor"}
                     </span>
                     <span className="flex items-center gap-1">
-                      <BookOpen className="size-3" />
-                      {course.lessonCount} lessons
+                      <GraduationCap className="size-3" />
+                      {course.categoryName}
                     </span>
                   </CardFooter>
                 </Card>
