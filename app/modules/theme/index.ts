@@ -1,4 +1,4 @@
-import { contrastRatio, parseOklch } from "./lib/oklch";
+import { type Oklch, contrastRatio, parseOklch } from "./lib/oklch";
 import { readTokens } from "./lib/tokens";
 
 export type ContrastFailure = {
@@ -29,11 +29,19 @@ const PAIRS: ReadonlyArray<[string, string, number]> = [
   ["ring", "background", UI],
 ];
 
+/** An opaque `oklch()` colour, or null for anything else. */
+function parseOpaque(value: string | undefined): Oklch | null {
+  const colour = parseOklch(value);
+  return colour?.alpha === 1 ? colour : null;
+}
+
 /** WCAG contrast ratio of two opaque `oklch()` colours, from 1 to 21. */
 export function contrast(one: string, other: string): number {
-  const a = parseOklch(one);
-  const b = parseOklch(other);
-  if (!a || !b) throw new Error(`Not an oklch() colour: ${a ? other : one}`);
+  const a = parseOpaque(one);
+  const b = parseOpaque(other);
+  if (!a || !b) {
+    throw new Error(`Not an opaque oklch() colour: ${a ? other : one}`);
+  }
   return contrastRatio(a, b);
 }
 
@@ -52,10 +60,9 @@ export function checkThemeContrast(css: string): ContrastFailure[] {
   for (const [mode, selector] of MODES) {
     const tokens = readTokens(css, selector);
     for (const [foreground, background, required] of PAIRS) {
-      const fg = parseOklch(tokens.get(foreground));
-      const bg = parseOklch(tokens.get(background));
-      const ratio =
-        fg?.alpha === 1 && bg?.alpha === 1 ? contrastRatio(fg, bg) : 0;
+      const fg = parseOpaque(tokens.get(foreground));
+      const bg = parseOpaque(tokens.get(background));
+      const ratio = fg && bg ? contrastRatio(fg, bg) : 0;
       if (ratio < required) {
         failures.push({ mode, foreground, background, ratio, required });
       }

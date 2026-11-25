@@ -88,6 +88,15 @@ describe("contrast", () => {
     expect(() => contrast(value, "oklch(1 0 0)")).toThrow(value);
   });
 
+  it("throws on a translucent colour, whose contrast depends on what is under it", () => {
+    expect(() => contrast("oklch(0 0 0 / 50%)", "oklch(1 0 0)")).toThrow(
+      "oklch(0 0 0 / 50%)"
+    );
+    expect(() => contrast("oklch(0 0 0)", "oklch(1 0 0 / 0.5)")).toThrow(
+      "oklch(1 0 0 / 0.5)"
+    );
+  });
+
   it("throws on a value that is not oklch()", () => {
     expect(() => contrast("#fff", "oklch(0 0 0)")).toThrow("#fff");
     expect(() => contrast("oklch(0 0 0)", "red")).toThrow("red");
