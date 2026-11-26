@@ -110,6 +110,8 @@ export async function getInstructorProfile(
     throw data(NOT_FOUND, { status: 404 });
   }
 
+  const pageCount = Math.max(1, Math.ceil(total / PROFILE_PAGE_SIZE));
+  const shownPage = Math.min(page, pageCount);
   const bio = user.bio?.trim();
   return {
     instructor: {
@@ -119,8 +121,8 @@ export async function getInstructorProfile(
       bioHtml: bio ? await renderComment(markdown(bio)) : null,
     },
     isPublic,
-    courses: getCoursePage(db, user.id, page),
-    page,
-    pageCount: Math.max(1, Math.ceil(total / PROFILE_PAGE_SIZE)),
+    courses: getCoursePage(db, user.id, shownPage),
+    page: shownPage,
+    pageCount,
   };
 }

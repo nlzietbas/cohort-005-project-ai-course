@@ -134,6 +134,18 @@ describe("a public profile", () => {
     expect(second.page).toBe(2);
   });
 
+  it("shows the last page for a page past the end", async () => {
+    const sarah = addUser(db, "Sarah Chen");
+    for (let i = 0; i <= PROFILE_PAGE_SIZE; i++) {
+      publish(sarah.id, `Course ${i}`);
+    }
+
+    const profile = await profiles.get(sarah.slug, ANONYMOUS, 99);
+
+    expect(profile.page).toBe(2);
+    expect(profile.courses).toHaveLength(1);
+  });
+
   it("belongs to anyone who teaches a listed course, whatever their role", async () => {
     const alex = addUser(db, "Alex Rivera", { role: UserRole.Admin });
     publish(alex.id, "Admin's course");
