@@ -72,6 +72,9 @@ export function seedBaseData(testDb: TestDb) {
       instructorId: instructor.id,
       categoryId: category.id,
       status: schema.CourseStatus.Published,
+      weeklyCommitmentMinMinutes: 120,
+      weeklyCommitmentMaxMinutes: 180,
+      durationWeeks: 4,
     })
     .returning()
     .get();

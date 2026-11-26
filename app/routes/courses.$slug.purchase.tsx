@@ -30,11 +30,17 @@ import {
   TabsContent,
   TabsContentNoShift,
 } from "~/components/ui/tabs";
-import { BookOpen, Clock, Users, ArrowLeft, Minus, Plus } from "lucide-react";
+import { BookOpen, Users, ArrowLeft, Minus, Plus } from "lucide-react";
 import { CourseImage } from "~/components/course-image";
 import { UserAvatar } from "~/components/user-avatar";
 import { data } from "react-router";
-import { formatDuration, formatPrice } from "~/lib/utils";
+import { formatPrice } from "~/lib/utils";
+import { totalVideoMinutes } from "~/modules/course-time";
+import { courseTime } from "~/modules/course-time/index.server";
+import {
+  VideoTimeLabel,
+  WeeklyCommitmentLabel,
+} from "~/components/course-time";
 import { resolveCountry } from "~/lib/country.server";
 import { calculatePppPrice, getCountryTierInfo, COUNTRIES } from "~/lib/ppp";
 import { parseFormData, parseParams } from "~/lib/validation";
@@ -264,11 +270,11 @@ export async function loader({ params, request, url }: Route.LoaderArgs) {
   const lessonCount = getLessonCountForCourse(course.id);
   const enrollmentCount = getEnrollmentCountForCourse(course.id);
 
-  const totalDuration = courseWithDetails.modules.reduce(
-    (sum, mod) =>
-      sum + mod.lessons.reduce((s, l) => s + (l.durationMinutes ?? 0), 0),
-    0
+  const totalDuration = totalVideoMinutes(
+    courseWithDetails.modules.flatMap((mod) => mod.lessons)
   );
+  const weeklyCommitment = courseTime.getWeeklyCommitment(course.id);
+  if (!weeklyCommitment) throw data("Course not found.", { status: 404 });
 
   const country = await resolveCountry(request);
   const pppPrice = courseWithDetails.pppEnabled
@@ -284,6 +290,7 @@ export async function loader({ params, request, url }: Route.LoaderArgs) {
     lessonCount,
     enrollmentCount,
     totalDuration,
+    weeklyCommitment,
     pppPrice,
     tierInfo,
     country,
@@ -347,6 +354,7 @@ export default function PurchaseConfirmation({
     lessonCount,
     enrollmentCount,
     totalDuration,
+    weeklyCommitment,
     pppPrice,
     tierInfo,
     countryName,
@@ -420,10 +428,14 @@ export default function PurchaseConfirmation({
               <BookOpen className="size-4" />
               {lessonCount} {lessonCount === 1 ? "lesson" : "lessons"}
             </span>
-            <span className="flex items-center gap-2">
-              <Clock className="size-4" />
-              {formatDuration(totalDuration, true, false, false)} total
-            </span>
+            <WeeklyCommitmentLabel
+              commitment={weeklyCommitment}
+              className="flex items-center gap-2"
+            />
+            <VideoTimeLabel
+              minutes={totalDuration}
+              className="flex items-center gap-2"
+            />
             <span className="flex items-center gap-2">
               <Users className="size-4" />
               {enrollmentCount} {enrollmentCount === 1 ? "student" : "students"}{" "}

@@ -32,7 +32,12 @@ beforeEach(() => {
     (position) =>
       db
         .insert(schema.lessons)
-        .values({ moduleId: module.id, title: `Lesson ${position}`, position })
+        .values({
+          moduleId: module.id,
+          title: `Lesson ${position}`,
+          position,
+          durationMinutes: 10,
+        })
         .returning()
         .get().id
   );

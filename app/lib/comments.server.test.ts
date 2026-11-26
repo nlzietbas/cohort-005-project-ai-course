@@ -31,7 +31,12 @@ beforeEach(() => {
 
   lessonId = db
     .insert(schema.lessons)
-    .values({ moduleId: module.id, title: "Lesson 1", position: 1 })
+    .values({
+      moduleId: module.id,
+      title: "Lesson 1",
+      position: 1,
+      durationMinutes: 10,
+    })
     .returning()
     .get().id;
 });
@@ -158,7 +163,12 @@ describe("creating a comment", () => {
   it("refuses a reply to a comment on a different lesson", async () => {
     const otherLessonId = db
       .insert(schema.lessons)
-      .values({ moduleId: moduleId, title: "Lesson 2", position: 2 })
+      .values({
+        moduleId: moduleId,
+        title: "Lesson 2",
+        position: 2,
+        durationMinutes: 10,
+      })
       .returning()
       .get().id;
     const question = await post(null, otherLessonId);
