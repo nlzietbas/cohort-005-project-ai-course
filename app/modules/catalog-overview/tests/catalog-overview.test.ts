@@ -17,8 +17,6 @@ beforeEach(() => {
 });
 
 // ─── Fixtures ───
-// The catalog module only reads, so rows go in directly. Kept in one place so
-// a schema change touches only this block.
 
 let slugCounter = 0;
 

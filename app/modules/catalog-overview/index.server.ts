@@ -13,12 +13,9 @@ import {
 export function createCatalogOverview(database: Db) {
   return {
     /**
-     * Counts only published courses, with no cap, and names only the
-     * categories that have at least one published course.
-     *
-     * `topics` is those category names in plain words ("Design, Data and
-     * Programming"); `exactFigures` is the same catalog as counts ("4
-     * published courses in 3 topics") for readers who want the numbers.
+     * `topics` names the published topics in words; `exactFigures` counts
+     * published courses and topics. See
+     * docs/adr/0014-the-home-page-describes-the-catalog-in-words.md.
      */
     get() {
       const overview = readCatalogOverview(database);
