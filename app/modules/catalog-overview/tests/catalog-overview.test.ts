@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import { eq } from "drizzle-orm";
 import { createTestDb, seedBaseData, type TestDb } from "~/test/setup";
 import * as schema from "~/db/schema";
 import { CourseStatus } from "~/db/schema";
@@ -99,6 +100,26 @@ describe("catalogOverview.get", () => {
     expect(overview().topics).toBe(
       "Data Science, Design, Programming, and more"
     );
+  });
+
+  it("counts every topic, not only the ones it names", () => {
+    for (const name of ["Design", "Data Science", "Writing", "Testing"])
+      addCourse(addCategory(name));
+
+    expect(overview().exactFigures).toBe("5 published courses in 5 topics");
+  });
+
+  it("names two categories that share a name as two topics", () => {
+    addCourse(addCategory("Programming 2"));
+    db.update(schema.categories)
+      .set({ name: "Programming" })
+      .where(eq(schema.categories.name, "Programming 2"))
+      .run();
+
+    expect(overview()).toEqual({
+      topics: "Programming and Programming",
+      exactFigures: "2 published courses in 2 topics",
+    });
   });
 
   it("says topics are coming soon when nothing is published", () => {

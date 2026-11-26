@@ -1,5 +1,5 @@
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import { asc, count, eq } from "drizzle-orm";
+import { asc, count, countDistinct, eq } from "drizzle-orm";
 import * as schema from "~/db/schema";
 import { categories, courses, CourseStatus } from "~/db/schema";
 
@@ -7,24 +7,40 @@ export type Db = BetterSQLite3Database<typeof schema>;
 
 export type CatalogOverview = {
   publishedCourses: number;
-  topics: string[];
+  publishedTopics: number;
+  firstTopics: string[];
 };
 
 const TOPICS_NAMED_IN_FULL = 3;
 
 export function readCatalogOverview(database: Db): CatalogOverview {
-  const rows = database
-    .select({ topic: categories.name, courses: count(courses.id) })
+  const published = eq(courses.status, CourseStatus.Published);
+
+  const totals = database
+    .select({
+      courses: count(courses.id),
+      topics: countDistinct(courses.categoryId),
+    })
     .from(courses)
     .innerJoin(categories, eq(courses.categoryId, categories.id))
-    .where(eq(courses.status, CourseStatus.Published))
+    .where(published)
+    .get();
+
+  const firstTopics = database
+    .select({ topic: categories.name })
+    .from(courses)
+    .innerJoin(categories, eq(courses.categoryId, categories.id))
+    .where(published)
     .groupBy(categories.id)
     .orderBy(asc(categories.name))
-    .all();
+    .limit(TOPICS_NAMED_IN_FULL + 1)
+    .all()
+    .map((row) => row.topic);
 
   return {
-    publishedCourses: rows.reduce((total, row) => total + row.courses, 0),
-    topics: rows.map((row) => row.topic),
+    publishedCourses: totals?.courses ?? 0,
+    publishedTopics: totals?.topics ?? 0,
+    firstTopics,
   };
 }
 
@@ -44,5 +60,5 @@ function plural(amount: number, noun: string) {
 }
 
 export function exactFigures(overview: CatalogOverview): string {
-  return `${plural(overview.publishedCourses, "published course")} in ${plural(overview.topics.length, "topic")}`;
+  return `${plural(overview.publishedCourses, "published course")} in ${plural(overview.publishedTopics, "topic")}`;
 }
