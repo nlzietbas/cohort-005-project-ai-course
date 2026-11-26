@@ -5,14 +5,12 @@ import type * as schema from "~/db/schema";
 import { CourseStatus, UserRole, courses, users } from "~/db/schema";
 import { renderComment } from "~/lib/comment-markdown.server";
 import { markdown } from "~/lib/text";
+import type { Person } from "~/modules/permissions/person.server";
 
 export type Db = BetterSQLite3Database<typeof schema>;
 
 /** Who is looking at a profile: null when signed out. */
-export type ProfileViewer = {
-  id: number;
-  role: "student" | "instructor" | "platform-admin";
-} | null;
+export type ProfileViewer = Pick<Person, "id" | "role"> | null;
 
 export type ProfileCourse = {
   id: number;
