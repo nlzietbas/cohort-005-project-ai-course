@@ -20,7 +20,7 @@ export function createCatalogOverview(database: Db) {
     get() {
       const overview = readCatalogOverview(database);
       return {
-        topics: topicsInWords(overview.firstTopics),
+        topics: topicsInWords(overview),
         exactFigures: exactFigures(overview),
       };
     },

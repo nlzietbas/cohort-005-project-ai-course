@@ -33,7 +33,7 @@ export function readCatalogOverview(database: Db): CatalogOverview {
     .where(published)
     .groupBy(categories.id)
     .orderBy(asc(categories.name))
-    .limit(TOPICS_NAMED_IN_FULL + 1)
+    .limit(TOPICS_NAMED_IN_FULL)
     .all()
     .map((row) => row.topic);
 
@@ -49,10 +49,12 @@ const listFormat = new Intl.ListFormat("en", {
   type: "conjunction",
 });
 
-export function topicsInWords(topics: string[]): string {
-  if (topics.length === 0) return "Coming soon";
-  if (topics.length <= TOPICS_NAMED_IN_FULL) return listFormat.format(topics);
-  return listFormat.format([...topics.slice(0, TOPICS_NAMED_IN_FULL), "more"]);
+export function topicsInWords(overview: CatalogOverview): string {
+  const { firstTopics, publishedTopics } = overview;
+  if (firstTopics.length === 0) return "Coming soon";
+  if (publishedTopics <= firstTopics.length)
+    return listFormat.format(firstTopics);
+  return listFormat.format([...firstTopics, "more"]);
 }
 
 function plural(amount: number, noun: string) {
