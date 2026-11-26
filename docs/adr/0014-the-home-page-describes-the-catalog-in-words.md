@@ -4,6 +4,8 @@ A visitor said the numbers on the home page made them feel they had to do sums (
 
 The counts are not gone: under the tiles a closed "Prefer exact numbers?" disclosure opens to one sentence, "12 published courses in 4 topics", for a visitor who wants the size of the catalog. It stays closed unless the visitor opens it, so nobody meets a number they did not ask for.
 
+The featured course cards follow the same rule: their footer names the course's topic where it used to say "12 lessons".
+
 ## Considered Options
 
 - **Keep the counts, reword the labels.** Rejected: the visitor objected to the numbers themselves, not to their labels.
