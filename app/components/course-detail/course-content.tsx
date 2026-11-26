@@ -24,7 +24,7 @@ type CourseContentProps = {
   };
   canView: boolean;
   isInstructor: boolean;
-  lessonProgressMap: Record<number, string>;
+  lessonProgressMap: Record<number, LessonProgressStatus>;
 };
 
 export function CourseContent(props: CourseContentProps) {
@@ -124,7 +124,11 @@ function LessonRow({
   );
 }
 
-function LessonStatusIcon({ status }: { status: string | undefined }) {
+function LessonStatusIcon({
+  status,
+}: {
+  status: LessonProgressStatus | undefined;
+}) {
   if (status === LessonProgressStatus.Completed) {
     return <CheckCircle2 className="size-4 shrink-0 text-green-500" />;
   }
