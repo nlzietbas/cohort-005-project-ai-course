@@ -6,8 +6,6 @@ import {
   type Db,
 } from "./lib/catalog-overview";
 
-export type { CatalogOverview } from "./lib/catalog-overview";
-
 /**
  * What the catalog holds, in words. The app uses `catalogOverview`, which
  * reads the app database; tests build their own against a test database.
