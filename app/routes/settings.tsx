@@ -240,7 +240,7 @@ export default function Settings({ loaderData }: Route.ComponentProps) {
                   placeholder="Tell students about yourself..."
                 />
                 <p className="text-xs text-muted-foreground">
-                  Your bio is shown on your course pages.
+                  Your bio is shown on your profile and your course pages.
                 </p>
               </div>
             )}
