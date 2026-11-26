@@ -30,6 +30,7 @@ import { formatPrice } from "~/lib/utils";
 import { resolveCountry } from "~/lib/country.server";
 import { calculatePppPrice } from "~/lib/ppp";
 import { StarRating } from "~/components/star-rating";
+import { InstructorName } from "~/components/instructor-profile";
 
 function buildCourseQuery(
   search: string | null,
@@ -69,6 +70,7 @@ function buildCourseQuery(
       updatedAt: coursesTable.updatedAt,
       instructorName: users.name,
       instructorAvatarUrl: users.avatarUrl,
+      instructorSlug: users.slug,
       categoryName: categoriesTable.name,
     })
     .from(coursesTable)
@@ -453,11 +455,12 @@ export default function CourseCatalog({ loaderData }: Route.ComponentProps) {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {courses.map((course) => (
-            <Link
-              key={course.id}
-              to={`/courses/${course.slug}`}
-              className="group"
-            >
+            <div key={course.id} className="group relative">
+              <Link
+                to={`/courses/${course.slug}`}
+                aria-label={course.title}
+                className="absolute inset-0 z-0 rounded-xl"
+              />
               <Card className="h-full overflow-hidden pt-0 transition-shadow group-hover:shadow-md">
                 <div className="aspect-video overflow-hidden">
                   <CourseImage
@@ -513,7 +516,10 @@ export default function CourseCatalog({ loaderData }: Route.ComponentProps) {
                       avatarUrl={course.instructorAvatarUrl}
                       className="size-5"
                     />
-                    {course.instructorName}
+                    <InstructorName
+                      name={course.instructorName}
+                      slug={course.instructorSlug}
+                    />
                   </span>
                   <span className="font-semibold text-foreground">
                     {course.pppPrice < course.price ? (
@@ -529,7 +535,7 @@ export default function CourseCatalog({ loaderData }: Route.ComponentProps) {
                   </span>
                 </CardFooter>
               </Card>
-            </Link>
+            </div>
           ))}
         </div>
       )}
