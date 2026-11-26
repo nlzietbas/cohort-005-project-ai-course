@@ -39,6 +39,20 @@ A Student who has lost their Enrollment on a course but still has progress on it
 Seconds of video a Student has actually played in a course: the furthest point reached in each lesson, added up. Not lessons opened.
 _Avoid_: Viewed, Progress
 
+### Course time
+
+**Weekly Commitment**:
+How long a Student should set aside each week to take a course: a range of hours per week, for a number of weeks. The Instructor sets it, and it counts everything the course asks of a Student, not only video. Every course has one.
+_Avoid_: Course time (on its own), Workload, Effort, Duration
+
+**Video Length**:
+How long one lesson's video runs, in whole minutes. Every lesson has one of at least 1 minute.
+_Avoid_: Duration, Lesson time, Estimated time
+
+**Video Time**:
+The Video Lengths of every lesson in a course (or module) added up. It is the least time the course takes, not an estimate of the whole.
+_Avoid_: Total, Course length, Total duration
+
 ### Discussions
 
 **Discussion Question**:

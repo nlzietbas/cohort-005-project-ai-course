@@ -6,6 +6,12 @@ import type { Route } from "./+types/instructor.new";
 import { people } from "~/modules/permissions/person.server";
 import { parseFormData } from "~/lib/validation";
 import { markdown } from "~/lib/text";
+import {
+  toWeeklyCommitment,
+  weeklyCommitmentFields,
+  type WeeklyCommitment,
+} from "~/modules/course-time";
+import { WeeklyCommitmentInputs } from "~/components/course-editor/weekly-commitment-card";
 import { db } from "~/db";
 import { categories, courses, CourseStatus } from "~/db/schema";
 import { eq } from "drizzle-orm";
@@ -46,7 +52,8 @@ function createCourse(
   salesCopy: string,
   instructorId: number,
   categoryId: number,
-  coverImageUrl: string | null
+  coverImageUrl: string | null,
+  commitment: WeeklyCommitment
 ) {
   if (salesCopy.trim().length === 0) {
     throw new Error("Sales copy cannot be empty");
@@ -63,6 +70,9 @@ function createCourse(
       categoryId,
       status: CourseStatus.Draft,
       coverImageUrl,
+      weeklyCommitmentMinMinutes: commitment.minMinutes,
+      weeklyCommitmentMaxMinutes: commitment.maxMinutes,
+      durationWeeks: commitment.weeks,
     })
     .returning()
     .get();
@@ -74,6 +84,7 @@ const newCourseSchema = z.object({
   salesCopy: z.string().trim().min(1, "Sales copy is required."),
   categoryId: z.string().min(1, "Category is required."),
   coverImageUrl: z.string().trim().optional(),
+  ...weeklyCommitmentFields,
 });
 
 export function meta() {
@@ -104,6 +115,19 @@ export async function action({ request }: Route.ActionArgs) {
   const { title, description, salesCopy, categoryId, coverImageUrl } =
     parsed.data;
 
+  const commitment = toWeeklyCommitment(parsed.data);
+  if (!commitment) {
+    return data(
+      {
+        errors: {
+          weeklyMaxHours:
+            "The maximum weekly time cannot be less than the minimum.",
+        } as Record<string, string>,
+      },
+      { status: 400 }
+    );
+  }
+
   const slug = generateSlug(title);
 
   const existingCourse = getCourseBySlug(slug);
@@ -125,7 +149,8 @@ export async function action({ request }: Route.ActionArgs) {
     salesCopy,
     person.id,
     parseInt(categoryId, 10),
-    coverImageUrl || null
+    coverImageUrl || null,
+    commitment
   );
 
   throw redirect(`/courses/${course.slug}`);
@@ -275,6 +300,27 @@ export default function InstructorNewCourse({
                 placeholder="https://example.com/image.jpg"
               />
             </div>
+
+            {/* Weekly Commitment */}
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-medium">Weekly Commitment</legend>
+              <p className="text-xs text-muted-foreground">
+                How many hours a week a Student should set aside, and for how
+                many weeks. Count video, exercises, quizzes and rewatching.
+              </p>
+              <div className="flex flex-wrap items-end gap-4">
+                <WeeklyCommitmentInputs />
+              </div>
+              {(errors?.weeklyMinHours ||
+                errors?.weeklyMaxHours ||
+                errors?.durationWeeks) && (
+                <p className="text-sm text-destructive">
+                  {errors.weeklyMinHours ??
+                    errors.weeklyMaxHours ??
+                    errors.durationWeeks}
+                </p>
+              )}
+            </fieldset>
 
             {/* Submit */}
             <div className="flex items-center gap-3">

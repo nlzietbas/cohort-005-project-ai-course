@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import { data, isRouteErrorResponse } from "react-router";
 import { formatDuration } from "~/lib/utils";
+import { totalVideoMinutes } from "~/modules/course-time";
+import { VideoTimeLabel } from "~/components/course-time";
 
 function getCourseWithDetails(id: number) {
   const course = db
@@ -177,10 +179,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const moduleProgress =
     totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
-  const totalDuration = moduleWithLessons.lessons.reduce(
-    (sum, l) => sum + (l.durationMinutes ?? 0),
-    0
-  );
+  const totalDuration = totalVideoMinutes(moduleWithLessons.lessons);
 
   return {
     course: {
@@ -266,12 +265,7 @@ export default function ModuleDetail({ loaderData }: Route.ComponentProps) {
           <BookOpen className="size-4" />
           {totalLessons} {totalLessons === 1 ? "lesson" : "lessons"}
         </span>
-        {totalDuration > 0 && (
-          <span className="flex items-center gap-1">
-            <Clock className="size-4" />
-            {formatDuration(totalDuration, true, false, false)}
-          </span>
-        )}
+        <VideoTimeLabel minutes={totalDuration} />
       </div>
 
       {canTake && totalLessons > 0 && (
@@ -346,17 +340,10 @@ export default function ModuleDetail({ loaderData }: Route.ComponentProps) {
                   ) : (
                     <FileText className="size-3.5 text-muted-foreground" />
                   )}
-                  {lesson.durationMinutes && (
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="size-3" />
-                      {formatDuration(
-                        lesson.durationMinutes,
-                        true,
-                        false,
-                        false
-                      )}
-                    </span>
-                  )}
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Clock className="size-3" />
+                    {formatDuration(lesson.durationMinutes, true, false, false)}
+                  </span>
                 </div>
               </div>
             );

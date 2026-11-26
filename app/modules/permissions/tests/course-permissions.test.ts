@@ -70,6 +70,9 @@ function addCourse(instructorId = base.instructor.id) {
       instructorId,
       categoryId: base.category.id,
       status: schema.CourseStatus.Published,
+      weeklyCommitmentMinMinutes: 60,
+      weeklyCommitmentMaxMinutes: 120,
+      durationWeeks: 2,
     })
     .returning()
     .get();
@@ -86,7 +89,7 @@ function addModule(courseId = base.course.id) {
 function addLesson(moduleId: number) {
   return db
     .insert(schema.lessons)
-    .values({ moduleId, title: "A lesson", position: 1 })
+    .values({ moduleId, title: "A lesson", position: 1, durationMinutes: 10 })
     .returning()
     .get();
 }

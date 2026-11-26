@@ -83,6 +83,13 @@ export const courses = sqliteTable("courses", {
   pppEnabled: integer("ppp_enabled", { mode: "boolean" })
     .notNull()
     .default(true),
+  weeklyCommitmentMinMinutes: integer(
+    "weekly_commitment_min_minutes"
+  ).notNull(),
+  weeklyCommitmentMaxMinutes: integer(
+    "weekly_commitment_max_minutes"
+  ).notNull(),
+  durationWeeks: integer("duration_weeks").notNull(),
   createdAt: text("created_at")
     .notNull()
     .$defaultFn(() => new Date().toISOString()),
@@ -113,7 +120,7 @@ export const lessons = sqliteTable("lessons", {
   videoUrl: text("video_url"),
   githubRepoUrl: text("github_repo_url"),
   position: integer("position").notNull(),
-  durationMinutes: integer("duration_minutes"),
+  durationMinutes: integer("duration_minutes").notNull(),
   createdAt: text("created_at")
     .notNull()
     .$defaultFn(() => new Date().toISOString()),

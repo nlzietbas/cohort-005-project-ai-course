@@ -21,12 +21,13 @@ import {
 import { data, isRouteErrorResponse } from "react-router";
 import { z } from "zod";
 import { parseFormData } from "~/lib/validation";
+import { lessonDurationMinutes } from "~/modules/course-time";
 
 const updateLessonSchema = z.object({
   intent: z.literal("update-lesson"),
   content: z.string().optional(),
   videoUrl: z.string().trim().optional(),
-  durationMinutes: z.string().optional(),
+  durationMinutes: lessonDurationMinutes,
   githubRepoUrl: z.string().trim().optional(),
 });
 
@@ -58,19 +59,15 @@ function updateLesson(
   title: string | null,
   content: string | null,
   videoUrl: string | null,
-  durationMinutes: number | null,
+  durationMinutes: number,
   githubRepoUrl: string | null = null
 ) {
   const updates: Record<string, unknown> = {};
   if (title !== null) updates.title = title;
   if (content !== null) updates.content = content;
   if (videoUrl !== null) updates.videoUrl = videoUrl;
-  if (durationMinutes !== null) updates.durationMinutes = durationMinutes;
+  updates.durationMinutes = durationMinutes;
   if (githubRepoUrl !== null) updates.githubRepoUrl = githubRepoUrl;
-
-  if (Object.keys(updates).length === 0) {
-    return getLessonById(id);
-  }
 
   return db
     .update(lessons)
@@ -121,23 +118,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   if (parsed.data.intent === "update-lesson") {
-    const {
-      content,
-      videoUrl,
-      durationMinutes: durationStr,
-      githubRepoUrl,
-    } = parsed.data;
-    const durationMinutes = durationStr ? parseInt(durationStr, 10) : null;
-
-    if (
-      durationMinutes !== null &&
-      (isNaN(durationMinutes) || durationMinutes < 0)
-    ) {
-      return data(
-        { error: "Duration must be a positive number." },
-        { status: 400 }
-      );
-    }
+    const { content, videoUrl, durationMinutes, githubRepoUrl } = parsed.data;
 
     updateLesson(
       lessonId,
@@ -162,7 +143,7 @@ export default function InstructorLessonEditor({
   const [content, setContent] = useState(lesson.content ?? "");
   const [videoUrl, setVideoUrl] = useState(lesson.videoUrl ?? "");
   const [durationMinutes, setDurationMinutes] = useState(
-    lesson.durationMinutes?.toString() ?? ""
+    lesson.durationMinutes.toString()
   );
   const [githubRepoUrl, setGithubRepoUrl] = useState(
     lesson.githubRepoUrl ?? ""
@@ -171,7 +152,7 @@ export default function InstructorLessonEditor({
   const hasChanges =
     content !== (lesson.content ?? "") ||
     videoUrl !== (lesson.videoUrl ?? "") ||
-    durationMinutes !== (lesson.durationMinutes?.toString() ?? "") ||
+    durationMinutes !== lesson.durationMinutes.toString() ||
     githubRepoUrl !== (lesson.githubRepoUrl ?? "");
 
   const blocker = useBlocker(hasChanges);
@@ -311,18 +292,22 @@ export default function InstructorLessonEditor({
         {/* Duration */}
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-semibold">Duration</h2>
+            <h2 className="text-lg font-semibold">Video Length</h2>
             <p className="text-sm text-muted-foreground">
-              Set the estimated time to complete this lesson.
+              How long this lesson's video runs, in whole minutes. Students see
+              the course's total video time. Set what the course asks of their
+              week under Weekly Commitment in the course settings.
             </p>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="duration">Duration (minutes)</Label>
+              <Label htmlFor="duration">Video length (minutes)</Label>
               <Input
                 id="duration"
                 type="number"
-                min="0"
+                min="1"
+                step="1"
+                required
                 value={durationMinutes}
                 onChange={(event) => setDurationMinutes(event.target.value)}
                 placeholder="e.g. 15"
