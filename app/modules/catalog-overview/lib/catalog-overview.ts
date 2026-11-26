@@ -34,7 +34,7 @@ const listFormat = new Intl.ListFormat("en", {
 });
 
 export function topicsInWords(topics: string[]): string {
-  if (topics.length === 0) return "Topics appear as courses are published";
+  if (topics.length === 0) return "Coming soon";
   if (topics.length <= TOPICS_NAMED_IN_FULL) return listFormat.format(topics);
   return listFormat.format([...topics.slice(0, TOPICS_NAMED_IN_FULL), "more"]);
 }

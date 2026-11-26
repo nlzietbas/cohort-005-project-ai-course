@@ -103,11 +103,11 @@ describe("catalogOverview.get", () => {
     );
   });
 
-  it("says topics are still to come when nothing is published", () => {
+  it("says topics are coming soon when nothing is published", () => {
     db.update(schema.courses).set({ status: CourseStatus.Draft }).run();
 
     expect(overview()).toEqual({
-      topics: "Topics appear as courses are published",
+      topics: "Coming soon",
       exactFigures: "0 published courses in 0 topics",
     });
   });
