@@ -66,12 +66,7 @@ function listedCourses(instructorId: number) {
 }
 
 function countListedCourses(db: Db, instructorId: number) {
-  const row = db
-    .select({ count: sql<number>`count(*)` })
-    .from(courses)
-    .where(listedCourses(instructorId))
-    .get();
-  return row?.count ?? 0;
+  return db.$count(courses, listedCourses(instructorId));
 }
 
 function getCoursePage(db: Db, instructorId: number, page: number) {
@@ -107,7 +102,7 @@ export async function getInstructorProfile(
   const user = findUser(db, slug);
   if (!user?.slug) throw data(NOT_FOUND, { status: 404 });
 
-  const total = countListedCourses(db, user.id);
+  const total = await countListedCourses(db, user.id);
   const isPublic = total > 0;
   const hasProfile = isPublic || user.role === UserRole.Instructor;
   if (!hasProfile) throw data(NOT_FOUND, { status: 404 });
